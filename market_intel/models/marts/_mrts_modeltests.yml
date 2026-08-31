@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: mrts_daily_returns
+  - name: mart_metrics
     description: >
       Per-ticker daily metrics — price change, daily return,
       7/30-day moving averages, and 7/30-day rolling volatility.

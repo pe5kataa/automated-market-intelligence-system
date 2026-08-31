@@ -68,13 +68,22 @@ A successful end-to-end run in Airflow, running on the Azure VM — every task g
 Data flows through three dbt layers, each in its own schema:
 
 ```
-raw.raw_stock_prices  →  staging.stg_stock_prices  →  marts.mrts_daily_returns
-   (as loaded)             (typed & renamed)            (daily returns per ticker)
+raw.raw_stock_prices  →  staging.stg_stock_prices  →  marts.mart_metrics
+   (as loaded)             (typed & renamed)            (per-ticker daily metrics)
 ```
 
 - **raw** — a faithful copy of what the extract produced (`Ticker`, `Date`, `Open`, `High`, `Low`, `Close`, `Volume`, `loaded_at`).
 - **staging** (`stg_stock_prices`) — column renaming & typing into clean `snake_case`.
-- **marts** (`mrts_daily_returns`) — computes `price_change` and `daily_return` per ticker via window functions (`LAG` over date).
+- **marts** (`mart_metrics`) — per-ticker daily metrics, all built with window functions partitioned by ticker and ordered by date:
+
+  | Measure | Definition |
+  |---------|------------|
+  | `price_change` | absolute change vs. the previous trading day (`LAG`) |
+  | `daily_return` | percentage change vs. the previous trading day |
+  | `ma_7d` / `ma_30d` | 7- and 30-day moving averages of `close` (rolling `AVG`) |
+  | `vol_7d` / `vol_30d` | 7- and 30-day rolling volatility (`STDDEV` of `daily_return`) |
+
+  The earliest rows of each ticker are legitimately `NULL` for the lag- and stddev-based measures, so those columns are deliberately excluded from `not_null` testing.
 
 ### ✅ Data-Quality Tests
 
@@ -206,7 +215,7 @@ pytest
 ├── market_intel/              # dbt project
 │   ├── models/
 │   │   ├── staging/           # stg_stock_prices
-│   │   └── marts/             # mrts_daily_returns
+│   │   └── marts/             # mart_metrics
 │   └── tests/                 # singular dbt tests
 └── tests/                     # pytest unit tests
 ```
