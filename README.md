@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📈 Stocks Notifier
+# 📈 Market Intel
 
 ### Daily Stock-Price ELT Pipeline — Airflow · dbt · Docker · Azure
 
