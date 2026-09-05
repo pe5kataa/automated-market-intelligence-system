@@ -7,6 +7,4 @@ SELECT
     "Close" as close,
     "Volume" as volume
 FROM {{ source('raw', 'raw_stock_prices') }}
-ORDER BY date DESC;
-
-
+ORDER BY date DESC
