@@ -31,3 +31,4 @@ select
         rows between 29 preceding and current row
     ) as vol_30d
 from base
+order by date DESC
