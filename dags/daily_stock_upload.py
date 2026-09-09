@@ -7,7 +7,7 @@ MARKET_INTEL_PY = os.getenv("MARKET_INTEL_PY")
 PROJECT         = os.getenv("PROJECT")
 DBT             = os.getenv("DBT")
 
-@dag(dag_id="daily_stock_upload",start_date=datetime(2026, 1, 1), schedule="@daily", catchup=False)
+@dag(dag_id="daily_stock_upload",start_date=datetime(2026, 1, 1), schedule="@daily", catchup=True)
 def run_daily_price_pipeline():
     
     @task.external_python(
@@ -23,7 +23,6 @@ def run_daily_price_pipeline():
 
         tickers = ["AAPL", "MSFT", "NVDA", "TSLA"]
 
-        run_date = date.fromisoformat(ds)
         print(ds)
         end_date = (date.fromisoformat(ds) + timedelta(days=1))
 
@@ -32,13 +31,13 @@ def run_daily_price_pipeline():
         # yfinance NaN-fills rows when rate-limited → drop rows with no real price
         df = df.dropna()
 
-        if df.empty:
+        '''if df.empty:
             if run_date.weekday() >= 5:
                 sys.exit(99) 
             else:
-                raise RuntimeError(f"yfinance rate-limit -> will retry in 5 minutes")
+                raise RuntimeError(f"yfinance rate-limit -> will retry in 1 minutes")'''
         df.to_csv("/tmp/stocks.csv", index=False)
-        return "/tmp/stocks.csv" 
+        return "/tmp/stocks.csv"
 
     @task.external_python(python=MARKET_INTEL_PY)
     def load(path):
